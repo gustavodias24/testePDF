@@ -3,12 +3,14 @@ package com.benicio.testepdf;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,10 +23,37 @@ import android.os.Environment;
 import android.widget.Button;
 import android.widget.Toast;
 
+
+import com.itextpdf.text.Anchor;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Comment;
+import org.w3c.dom.DOMConfiguration;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.DocumentType;
+import org.w3c.dom.Element;
+import org.w3c.dom.EntityReference;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
+import org.w3c.dom.Text;
+import org.w3c.dom.UserDataHandler;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,8 +65,9 @@ public class MainActivity extends AppCompatActivity {
     int pagewidth = 792;
     // creating a bitmap variable
     // for storing our images
-    Bitmap bmp, scaledbmp;
-    Bitmap bmp2, scaledbmp2;
+    Bitmap logoEmpresabmp, logoEpresaScaledbmp;
+    Bitmap bmpTemplate, scaledbmpTemplate;
+
     // constant code for runtime permissions
     private static final int PERMISSION_REQUEST_CODE = 200;
 
@@ -50,11 +80,11 @@ public class MainActivity extends AppCompatActivity {
 
         botao = findViewById(R.id.botao);
 
-        bmp = BitmapFactory.decodeResource(getResources(), R.drawable.brasao);
-        scaledbmp = Bitmap.createScaledBitmap(bmp, 140, 140, false);
+        logoEmpresabmp = BitmapFactory.decodeResource(getResources(), R.drawable.brasao);
+        logoEpresaScaledbmp = Bitmap.createScaledBitmap(logoEmpresabmp, 104, 104, false);
 
-        bmp2 = BitmapFactory.decodeResource(getResources(), R.drawable.brasao);
-        scaledbmp2 = Bitmap.createScaledBitmap(bmp, 140, 140, false);
+        bmpTemplate = BitmapFactory.decodeResource(getResources(), R.drawable.templaterelatorio);
+        scaledbmpTemplate = Bitmap.createScaledBitmap(bmpTemplate, 792, 1120, false);
 
         // below code is used for
         // checking our permissions.
@@ -84,9 +114,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0) {
-
-                // after requesting permissions we are showing
-                // users a toast message of permission granted.
                 boolean writeStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 boolean readStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
 
@@ -113,22 +140,66 @@ public class MainActivity extends AppCompatActivity {
         PdfDocument.Page myPage = pdfDocument.startPage(mypageInfo);
 
         Canvas canvas = myPage.getCanvas();
-        canvas.drawBitmap(scaledbmp, 56, 40, paint);
-        canvas.drawBitmap(scaledbmp2, 580, 40, paint);
+
+        canvas.drawBitmap(scaledbmpTemplate, 1, 1, paint);
+
+        canvas.drawBitmap(logoEpresaScaledbmp, 76, 15, paint);
 
 
         title.setTextSize(25);
-        title.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-        title.setColor(ContextCompat.getColor(this, R.color.black));
-
-        canvas.drawText("Relatório do projeto:", 300, 110, title);
-        canvas.drawText("XXXXXXXXXXX", 300, 140, title);
-
         title.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
         title.setColor(ContextCompat.getColor(this, R.color.black));
-        title.setTextSize(15);
-        title.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("This is sample document which we have created.", 396, 560, title);
+
+        canvas.drawText("PROJETO TESTE 123", 212, 173, title);
+        canvas.drawText("Teste da Silva", 246, 226, title);
+
+        int espacamentoEntrePontos = 25;
+        int espacamentoEntreLinhas = 15;
+        int max = 11;
+        int index = 1;
+
+        List<ExemploModel> lista = new ArrayList<>();
+
+        lista.add(new ExemploModel(
+                "26/09/2023",
+                "https://earth.google.com/web/@-23.16335618,139.1763157,61.7453514a,364285.84619913d,35y,323.98457218h,0t,0r",
+                "Gustavo Dias",
+                "Ávore",
+                "teste de observação")
+        );
+
+        lista.add(new ExemploModel(
+                "26/09/2023",
+                "https://earth.google.com/web/@-23.16335618,139.1763157,61.7453514a,364285.84619913d,35y,323.98457218h,0t,0r",
+                "Gustavo Dias",
+                "Ávore",
+                "teste de observação")
+        );
+
+        lista.add(new ExemploModel(
+                "26/09/2023",
+                "https://earth.google.com/web/@-23.16335618,139.1763157,61.7453514a,364285.84619913d,35y,323.98457218h,0t,0r",
+                "Gustavo Dias",
+                "Ávore",
+                "teste de observação")
+        );
+        title.setTextSize(10);
+
+        int startX = 94;
+        int startY = 303;
+
+        for ( ExemploModel exemplo : lista){
+            canvas.drawText(String.format("(%s) - %s - %s", index, exemplo.getData(), exemplo.getTipo()), startX, startY, title);
+            startY += espacamentoEntreLinhas;
+            canvas.drawText(String.format("Obs.: %s", exemplo.getObs()), startX, startY, title);
+            startY += espacamentoEntreLinhas;
+
+            canvas.drawText(String.format("Link: %s", exemplo.getLink()), startX, startY, title);
+            startY += espacamentoEntrePontos;
+            index++;
+        }
+//        title.setTextAlign(Paint.Align.CENTER);
+
         pdfDocument.finishPage(myPage);
 
         File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -137,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
             directory.mkdirs(); // Crie o diretório se ele não existir.
         }
 
-        File file = new File(directory, "TESTEGFG.pdf");
+        File file = new File(directory, "JUJUBADOCE.pdf");
 
         try {
             // after creating a file name we will
